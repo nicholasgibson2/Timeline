@@ -34,7 +34,8 @@ public class MainActivity extends Activity {
         int eventStartIndex = 3;
         int eventEndIndex = 4;
         int eventLocationIndex = 5;
-        Event events[] = new Event[1000];
+        Event head = null;
+
         String name, description;
         long start = 0;
         long end;
@@ -51,19 +52,21 @@ public class MainActivity extends Activity {
                 null,
                 null);
 
-        for (int loop = 0; cursor.moveToNext(); loop++) {
+        while (cursor.moveToNext()) {
 
             name = cursor.getString(eventNameIndex);
             start = cursor.getLong(eventStartIndex);
             end = cursor.getLong(eventEndIndex);
             priority = cursor.getInt(eventDescriptionIndex);
 
-
-            events[loop] = new Event(name, start, end, priority);
+            if (head == null)
+                head = new Event(name, start, end, priority, null, null);
+            else
+                head = head.addEvent(name, start, end, priority, head);
         }
 
 
-        setContentView(new Timeline(this, events));
+        setContentView(new Timeline(this, head));
 
         /*
         final TextView firstTextView = (TextView) findViewById(R.id.textView);
