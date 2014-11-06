@@ -1,14 +1,17 @@
 package cogs198.timeline;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Typeface;
+import android.view.Display;
+import android.view.WindowManager;
 
 import java.util.Date;
 
 
 class Event {
+
     Date start; //used to easily access day, hour, minute etc.
     Date end; //currently unused
     int priority;
@@ -17,16 +20,26 @@ class Event {
 
     int position = 0;
     int size; //defined by priority
-    int gapSize = 20;
-    int minDistance = 60; //minimum event spacing
-    int maxDistance = 1000; //maximum event spacing
-    int hourSize = 70; //event spacing per hour
 
-    int lowSize = 20; //low priority event size
-    int medSize = 35; //medium priority event size
-    int highSize = 50; //high priority event size
+    static int numEvents = 0;
 
-    static int width, height; //width and height of canvas
+    //used for getting screen dimensions
+    WindowManager wm = (WindowManager) Timeline.holyContext.getSystemService(Context.WINDOW_SERVICE);
+    Display display = wm.getDefaultDisplay();
+    int width = display.getWidth(); //width of screen
+    int height = display.getHeight(); //height of screen
+
+    final int gapSize = height / 35; //size of timeline gap surrounding events
+    final double headBuffer = height / 6.5; //buffer for first event from top of screen
+    final int minDistance = height / 11; //minimum event spacing
+    final double maxDistance = height * 1.5; //maximum event spacing
+    final double maxNew = height * .8; //new spacing for events too far apart
+    final int hourSize = height / 11; //event spacing per hour
+    final int lowSize = height / 44; //low priority event size
+    final int medSize = height / 24; //medium priority event size
+    final int highSize = height / 18; //high priority event size
+    final int rectSize = height / 133; //width of timeline, size of gap boxes
+    final int leftShift = height / 10; //distance to shift left
 
     static Canvas canvas;
     static Paint paint;
@@ -35,10 +48,17 @@ class Event {
     int rectColor = Color.parseColor("#c9e5e3");
     int eventColor;
     int textColor = Color.parseColor("#ffffff");
-    int textSize = 32;
+    int topColor = Color.parseColor("#c1d9de");
+    int textSize = 30;
 
     Event prevNode = this; //previous event, default value for this event as first event
     Event nextNode = this; //next event, default value for this event as first event
+
+    //set canvas and paint, called once from head node
+    void setCanvas(Canvas setCanvas, Paint setPaint) {
+        canvas = setCanvas;
+        paint = setPaint;
+    }
 
     Event(String setTitle, long setStart, long setEnd, int setPriority, Event setPrevNode, Event setNextNode) {
         priority = setPriority;
@@ -70,6 +90,7 @@ class Event {
                 eventColor = Color.parseColor("#E5F3FF");
                 break;
         }
+        numEvents++;
     }
     //this method is always called from the head node, it will never be called with no events
     public Event addEvent(String setTitle, long setStart, long setEnd, int setPriority, Event head)
@@ -107,72 +128,138 @@ class Event {
                 return head;
         }
     }
-    //set static variables, called once from head node
-    void setCanvas(Canvas setCanvas, Paint setPaint, int setWidth, int setHeight) {
-        canvas = setCanvas;
-        width = setWidth;
-        height = setHeight;
-        paint = setPaint;
-    }
+
 
     //initially called from head, called recursively until events are off the display
     void draw(int offset, Event head) {
 
+        int epochHour = 3600000;
+
         if (this == head) {
-            position = 100 + offset;
+            position = (int)headBuffer + offset;
         }
         else {
             position = (int)(prevNode.position +
-                    (Math.abs(startEpoch -  prevNode.startEpoch)/ 3600000)*hourSize + nodeOffset);
+                    (Math.abs(startEpoch -  prevNode.startEpoch)/epochHour)*hourSize + nodeOffset);
 
+            //too close together
             if(Math.abs(position - prevNode.position) <= minDistance) {
                 nodeOffset += minDistance - Math.abs(position - prevNode.position);
                 position = (int)(prevNode.position +
-                        ((startEpoch -  prevNode.startEpoch)/3600000)*hourSize + nodeOffset);
+                        ((startEpoch -  prevNode.startEpoch)/epochHour)*hourSize + nodeOffset);
             }
+            //too far apart
             else if(Math.abs(position - prevNode.position) >= maxDistance) {
-                position = (int)(prevNode.position + 300 + nodeOffset);
+                position = (int)(prevNode.position + maxNew + nodeOffset);
+
+               // paint.setColor(rectColor);
+                //canvas.drawRect(rectLeft, rectTop, rectRight, rectBottom, paint);
             }
         }
+        if (position >= 0) {
 
-        int rectTop = position - size - gapSize;
-        int rectBottom = position + size + gapSize;
-        int rectLeft = width / 2 - 6 - 90;
-        int rectRight = width / 2 + 6 - 90;
+            //set up rectangles
+            int rectTop = position - size - gapSize;
+            int rectBottom = position + size + gapSize;
+            int rectLeft = width / 2 - rectSize - leftShift;
+            int rectRight = width / 2 + rectSize - leftShift;
 
-        //set up date text
-        int startMin = start.getMinutes();
-        String startText;
-        if (startMin == 0) {
-            startText = Integer.toString(start.getHours()) + ":" + "00";
+            //set up date text
+            int startMin = start.getMinutes();
+            String startText;
+
+            startText = EventDate.convertTime(start.getHours(), start.getMinutes());
+
+            //draw background color rectangle to make gap in timeline around ends of event
+            paint.setColor(rectColor);
+            canvas.drawRect(rectLeft, rectTop, rectRight, rectBottom, paint);
+
+            //draw event
+            paint.setColor(eventColor);
+            canvas.drawCircle(width / 2 - leftShift, position, size, paint);
+
+            //set text properties
+            paint.setColor(textColor);
+            paint.setTextSize(textSize);
+
+            //draw title text on right hand side
+            canvas.drawText(title, width / 2 + 70 - 90, position + 13, paint);
+
+            //draw date text on left hand side
+            canvas.drawText(startText, width / 2 - 90 - 140, position + 13, paint);
         }
-        else {
-            startText = Integer.toString(start.getHours()) + ":" + Integer.toString(startMin);
-        }
 
-        //draw background color rectangle to make gap in timeline around ends of event
-        paint.setColor(rectColor);
-        canvas.drawRect(rectLeft, rectTop, rectRight, rectBottom, paint);
-
-        //draw event
-        paint.setColor(eventColor);
-        canvas.drawCircle(width/2 - 90, position, size, paint);
-
-        //set text properties
-        paint.setColor(textColor);
-        paint.setTextSize(textSize);
-
-        //draw title text on right hand side
-        canvas.drawText(title, width / 2 + 60 - 90, position + 13, paint);
-
-        //draw date text on left hand side
-        canvas.drawText(startText, width / 2 - 90 - 120, position + 13, paint);
-
-        if (position > height) //event is off the screen
-            return;
-        else if (nextNode != head) //this is not the last event
+        //if this is not the last event, and the event is not off the screen
+        if ((nextNode != head) && (position < height))
             nextNode.draw(offset, head);
+        else {
+            //draw background color rectangle to make gap in timeline around ends of event
+            paint.setColor(topColor);
+            canvas.drawRect(0, 0, width, (int)(headBuffer*.65), paint);
+
+            String dateText;
+
+            if (prevNode.position >= (int)headBuffer) {
+                dateText = EventDate.getDayShort(prevNode.start.getDay()) + ", " +
+                    EventDate.getMonthLong(prevNode.start.getMonth()) + " " +
+                    prevNode.start.getDate();
+            }
+            else {
+                dateText = EventDate.getDayShort(start.getDay()) + ", " +
+                        EventDate.getMonthLong(start.getMonth()) + " " +
+                        start.getDate();
+            }
+
+            //set text properties
+            paint.setColor(textColor);
+            paint.setTextSize(50);
+            canvas.drawText(dateText, 20, 50, paint);
+
+            canvas.drawRect(0, (int)(headBuffer*.6), width, (int)(headBuffer*.65), paint);
+        }
+
+
 
     }
 
 }
+class EventDate {
+
+    public final static String[] monthLong = {"January", "February", "March", "April", "May",
+            "June", "July", "August", "September", "October", "November", "December"};
+
+    public final static String[] dayShort = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+
+    public static String getMonthLong(int month) {
+            return monthLong[month];
+        }
+    public static String getDayShort(int day) {
+        return dayShort[day];
+    }
+    public static String convertTime(int hour, int minute) {
+        String twelveHour;
+        boolean am = true;
+
+        if (hour > 12) {
+            hour -= 12;
+            am = false;
+        }
+        else if (hour == 0)
+            hour = 12;
+        else if (hour == 12)
+            am = false;
+
+        twelveHour = Integer.toString(hour) + ":" + Integer.toString(minute);
+
+        if (minute == 0)
+            twelveHour += "0";
+
+        if (am)
+            twelveHour += "a";
+        else
+            twelveHour += "p";
+
+        return twelveHour;
+    }
+}
+

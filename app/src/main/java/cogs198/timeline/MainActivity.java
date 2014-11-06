@@ -2,6 +2,7 @@ package cogs198.timeline;
 
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,14 +20,10 @@ import android.view.View;
 
 public class MainActivity extends Activity {
 
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
       //  setContentView(R.layout.activity_main);
-
 
         int eventCalendarID = 0;
         int eventNameIndex = 1;
@@ -35,6 +32,7 @@ public class MainActivity extends Activity {
         int eventEndIndex = 4;
         int eventLocationIndex = 5;
         Event head = null;
+        Timeline timeline = new Timeline(this);
 
         String name, description;
         long start = 0;
@@ -65,38 +63,9 @@ public class MainActivity extends Activity {
                 head = head.addEvent(name, start, end, priority, head);
         }
 
+        timeline.setHead(head);
+        setContentView(timeline);
 
-        setContentView(new Timeline(this, head));
-
-        /*
-        final TextView firstTextView = (TextView) findViewById(R.id.textView);
-        firstTextView.setText("fubar");
-
-
-
-        String[] timelineEvents = {"eventZero", "eventOne", "eventTwo", "eventThree", "eventFour",
-            "eventFive", "eventSix", "eventSeven", "eventEight", "eventNine"};
-
-        ListAdapter timelineEventsAdapter = new TimelineAdapter(this,
-                timelineEvents);
-
-        ListView timelineEventsListView = (ListView) findViewById(R.id.timelineListView);
-
-        timelineEventsListView.setAdapter(timelineEventsAdapter);
-
-        timelineEventsListView.setOnItemClickListener(new
-                AdapterView.OnItemClickListener() {
-                    @Override
-
-                    public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-
-                        String eventPicked = "You selected " + String.valueOf(adapterView.getItemAtPosition(position));
-                        Toast.makeText(MainActivity.this, eventPicked, Toast.LENGTH_SHORT).show();
-
-                    }
-                });
-
-        */
     }
 
 
