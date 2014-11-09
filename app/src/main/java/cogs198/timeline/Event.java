@@ -33,8 +33,9 @@ class Event {
     final int gapSize = height / 35; //size of timeline gap surrounding events
     final double headBuffer = height / 6.5; //buffer for first event from top of screen
     final int minDistance = height / 11; //minimum event spacing
-    final double maxDistance = height * 1.5; //maximum event spacing
+    final double maxDistance = height; //maximum event spacing
     final double maxNew = height * .8; //new spacing for events too far apart
+    //final double maxNew = 50; //new spacing for events too far apart
     final int hourSize = height / 11; //event spacing per hour
     final int lowSize = height / 44; //low priority event size
     final int medSize = height / 24; //medium priority event size
@@ -144,16 +145,31 @@ class Event {
 
 
     //initially called from head, called recursively until events are off the display
-    void drawForwards(int offset, Event head, boolean first) {
+    void draw(int offset, Event head, boolean first) {
 
         if (first) {
             position = (int) headBuffer + offset;
-            curHeadSpot = position;
+            curHeadSpot = position - offset;
         } else if (this == head) {
             position = curHeadSpot + offset;
 
-            if (position < 0) {
+            if (position <= 0 && startEpoch <= nextNode.startEpoch) {
                 Timeline.head = nextNode;
+                int nextPosition = (int) (position + (Math.abs(nextNode.startEpoch - startEpoch)
+                        / epochHour) * hourSize + nodeOffset);
+
+                curHeadSpot = nextPosition - offset;
+            }
+            else if (startEpoch >= prevNode.startEpoch)
+            {
+                int prevPosition = (int) (position - (Math.abs(startEpoch - prevNode.startEpoch) /
+                        epochHour) * hourSize + nodeOffset);
+
+                if (prevPosition > 0) {
+                    Timeline.head = prevNode;
+                    curHeadSpot = prevPosition - offset;
+                    prevNode.draw(offset, head, first);
+                }
             }
         }
         else {
@@ -165,13 +181,11 @@ class Event {
                 nodeOffset += minDistance - Math.abs(position - prevNode.position);
                 position = (int) (prevNode.position +
                         ((startEpoch - prevNode.startEpoch) / epochHour) * hourSize + nodeOffset);
-            }
+            }*/
             //too far apart
-            else if (Math.abs(position - prevNode.position) >= maxDistance) {
+         /*   if (Math.abs(position - prevNode.position) >= maxDistance &&
+                    startEpoch >= nextNode.startEpoch && this != head) {
                 position = (int) (prevNode.position + maxNew + nodeOffset);
-
-                // paint.setColor(rectColor);
-                //canvas.drawRect(rectLeft, rectTop, rectRight, rectBottom, paint);
             }*/
         }
         if (position >= 0) {
@@ -206,7 +220,7 @@ class Event {
 
         //if this is not the last event, and the event is not off the screen
         if ((position < height) && (startEpoch <= nextNode.startEpoch))
-            nextNode.drawForwards(offset, head, false);
+            nextNode.draw(offset, head, false);
         else {
             //draw background color rectangle to make gap in timeline around ends of event
             paint.setColor(topColor);
@@ -227,97 +241,14 @@ class Event {
             //set text properties
             paint.setColor(textColor);
             paint.setTextSize(50);
-            //canvas.drawText(dateText, 20, 50, paint);
-            canvas.drawText(prevNode.title + " F", 20, 50, paint);
+            canvas.drawText(dateText, 20, 50, paint);
+            //canvas.drawText(Integer.toString((int)maxDistance), 20, 50, paint);
 
             canvas.drawRect(0, (int) (headBuffer * .6), width, (int) (headBuffer * .65), paint);
-
-            Timeline.tail = prevNode;
-            curTailSpot = prevNode.position;
-        }
-    }
-    //initially called from tail, called recursively until events are off the display
-    void drawBackwards (int offset, Event tail){
-
-        if (this == tail) {
-            position = curTailSpot + offset;
-
-            if (position > height) {
-                Timeline.tail = prevNode;
-            }
-        }
-        else {
-            position = (int) (nextNode.position -
-                    (Math.abs(startEpoch - nextNode.startEpoch) / epochHour) * hourSize + nodeOffset);
-
-            //too close together
-           /* if (Math.abs(position - nextNode.position) <= minDistance) {
-                nodeOffset += minDistance - Math.abs(position - nextNode.position);
-                position = (int) (nextNode.position +
-                        ((startEpoch - nextNode.startEpoch) / epochHour) * hourSize + nodeOffset);
-            }
-            //too far apart
-            else if (Math.abs(position - nextNode.position) >= maxDistance) {
-                position = (int) (nextNode.position + maxNew + nodeOffset);
-            }*/
-        }
-        if (position <= height) {
-
-            //set up rectangles
-            int rectTop = position - size - gapSize;
-            int rectBottom = position + size + gapSize;
-            int rectLeft = width / 2 - rectSize - leftShift;
-            int rectRight = width / 2 + rectSize - leftShift;
-
-            //set up date text
-            String startText = EventDate.convertTime(start.getHours(), start.getMinutes());
-
-            //draw background color rectangle to make gap in timeline around ends of event
-            paint.setColor(rectColor);
-            canvas.drawRect(rectLeft, rectTop, rectRight, rectBottom, paint);
-
-            //draw event
-            paint.setColor(eventColor);
-            canvas.drawCircle(width / 2 - leftShift, position, size, paint);
-
-            //set text properties
-            paint.setColor(textColor);
-            paint.setTextSize(textSize);
-
-            //draw title text on right hand side
-            canvas.drawText(title, width / 2 + 70 - 90, position + 13, paint);
-
-            //draw date text on left hand side
-            canvas.drawText(startText, width / 2 - 90 - 140, position + 13, paint);
-        }
-
-        //if this is not the last event, and the event is not off the screen
-        if ((position > 0) && (startEpoch >= prevNode.startEpoch))
-            prevNode.drawBackwards(offset, tail);
-        else {
-            //draw background color rectangle to make gap in timeline around ends of event
-            paint.setColor(topColor);
-            canvas.drawRect(0, 0, width, (int) (headBuffer * .65), paint);
-
-            String dateText;
-
-            dateText = EventDate.getDayShort(start.getDay()) + ", " +
-                    EventDate.getMonthLong(start.getMonth()) + " " +
-                    start.getDate();
-
-            //set text properties
-            paint.setColor(textColor);
-            paint.setTextSize(50);
-            //canvas.drawText(dateText, 20, 50, paint);
-            canvas.drawText(nextNode.title + " B", 20, 50, paint);
-
-            canvas.drawRect(0, (int) (headBuffer * .6), width, (int) (headBuffer * .65), paint);
-
-            Timeline.head = nextNode;
-            curHeadSpot = nextNode.position;
         }
     }
 }
+
 class EventDate {
 
     public final static String[] monthLong = {"January", "February", "March", "April", "May",
