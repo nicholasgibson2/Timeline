@@ -25,7 +25,8 @@ public class Timeline extends View implements View.OnTouchListener{
 
     int width, height;
 
-    static Event head;
+    static Event head = null;
+    static Event tail = null;
 
     public static int offset = 0;
    // private Scroller mScroller;
@@ -34,6 +35,8 @@ public class Timeline extends View implements View.OnTouchListener{
     static Context holyContext;
     int leftShift;
     int timelineColor = Color.parseColor("#E5F3FF");
+    boolean first = true;
+    boolean forwards = true;
 
     static Scroller mScroller;
 
@@ -58,7 +61,8 @@ public class Timeline extends View implements View.OnTouchListener{
         mScroller = new Scroller(context);
     }
     public void setHead(Event setHead) {
-        head = setHead;
+        //head = setHead;
+        head = setHead.updateHead(setHead, System.currentTimeMillis());
     }
 
     @Override
@@ -85,7 +89,20 @@ public class Timeline extends View implements View.OnTouchListener{
     }
 
     void drawEvents() {
-        head.draw(offset, head);
+        Event tempHead = head;
+        Event tempTail = tail;
+
+        if (forwards)
+            head.drawForwards(offset, head, first);
+        else
+            tail.drawBackwards(offset, tail);
+
+        if (tempHead != head)
+            Event.curHeadSpot = head.position;
+        if (tempTail != tail)
+            Event.curTailSpot = tail.position;
+
+        first = false;
         invalidate();
     }
 
@@ -98,7 +115,12 @@ public class Timeline extends View implements View.OnTouchListener{
         }
         offset -= 1.2*(int) (prevY - event.getY());
 
-     //   Toast.makeText(holyContext, "working", Toast.LENGTH_SHORT);
+        if (prevY - event.getY() > 0)
+            forwards = true;
+        else
+            forwards = false;
+
+        //Toast.makeText(holyContext, "working", Toast.LENGTH_SHORT);
 
         drawEvents();
 
