@@ -87,7 +87,6 @@ public class Timeline extends View implements View.OnTouchListener{
     }
 
     void drawEvents() {
-        Event tempHead = head;
 
         head.draw(offset, head, first);
         first = false;
