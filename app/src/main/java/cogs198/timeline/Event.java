@@ -35,9 +35,7 @@ class Event {
     final int gapSize = height / 35; //size of timeline gap surrounding events
     final double headBuffer = height / 6.5; //buffer for first event from top of screen
     final int minDistance = height / 11; //minimum event spacing
-    final double maxDistance = height; //maximum event spacing
-    final double maxNew = height * .8; //new spacing for events too far apart
-    //final double maxNew = 50; //new spacing for events too far apart
+    final double maxDistance = height*.8; //maximum event spacing
     final int hourSize = height / 11; //event spacing per hour
     final int lowSize = height / 44; //low priority event size
     final int medSize = height / 24; //medium priority event size
@@ -163,10 +161,11 @@ class Event {
 
                 //too close together
                 if (Math.abs(nextPosition - position) < minDistance)
-                {
-                    //position = (int) (prevNode.position + minDistance*1.1);
-                    nextPosition = (int) (prevNode.position + minDistance*3);
-                }
+                    nextPosition = (int) (prevNode.position + minDistance + 1);
+
+                //too far apart
+                else if (Math.abs(nextPosition - position) >= maxDistance)
+                    nextPosition = (int) (prevNode.position + maxDistance + 1);
 
                 curHeadSpot = nextPosition - offset;
 
@@ -181,10 +180,11 @@ class Event {
 
                 //too close together
                 if (Math.abs(prevPosition - position) < minDistance)
-                {
-                    //position = (int) (prevNode.position + minDistance*1.1);
-                    prevPosition = (int) (prevPosition - minDistance*3);
-                }
+                    prevPosition = (int) (prevPosition - minDistance - 1);
+
+                //too far apart
+                else if (Math.abs(prevPosition - position) >= maxDistance)
+                    prevPosition = (int) (position - maxDistance - 1);
 
                 //if previous node should be displayed, make it the new head
                 if (prevPosition > 0) {
@@ -201,17 +201,13 @@ class Event {
                     (Math.abs(startEpoch - prevNode.startEpoch) / epochHour) * hourSize);
 
             //too close together
-            if (Math.abs(position - prevNode.position) < minDistance &&
-                    startEpoch >= prevNode.startEpoch)
-            {
-                //position = (int) (prevNode.position + minDistance*1.1);
-                position = (int) (prevNode.position + minDistance*3);
-            }
+            if (Math.abs(position - prevNode.position) < minDistance)
+                position = (int) (prevNode.position + minDistance + 1);
+
             //too far apart
-         /*   if (Math.abs(position - prevNode.position) >= maxDistance &&
-                    startEpoch >= nextNode.startEpoch && this != head) {
-                position = (int) (prevNode.position + maxNew + nodeOffset);
-            }*/
+            else if (Math.abs(position - prevNode.position) >= maxDistance)
+                position = (int) (prevNode.position + maxDistance + 1);
+
         }
         if (position >= 0) {
 
@@ -244,16 +240,16 @@ class Event {
         }
 
         //if this is not the last event, and the event is not off the screen
-        if ((position < height) && (startEpoch <= nextNode.startEpoch))
+        if ((position < height*.88) && (startEpoch <= nextNode.startEpoch))
             nextNode.draw(offset, head, false);
         else {
             //draw background color rectangle to make gap in timeline around ends of event
             paint.setColor(topColor);
-            //canvas.drawRect(0, 0, width, (int) (headBuffer * .65), paint);
+            canvas.drawRect(0, 0, width, (int) (headBuffer * .65), paint);
 
             String dateText;
 
-            if (prevNode.position >= (int) headBuffer) {
+            if (prevNode.position >= 0) {
                 dateText = EventDate.getDayShort(prevNode.start.getDay()) + ", " +
                         EventDate.getMonthLong(prevNode.start.getMonth()) + " " +
                         prevNode.start.getDate();
@@ -266,10 +262,10 @@ class Event {
             //set text properties
             paint.setColor(textColor);
             paint.setTextSize(50);
-            //canvas.drawText(dateText, 20, 50, paint);
-            //canvas.drawText(head.title, 20, 50, paint);
+            canvas.drawText(dateText, 20, 50, paint);
+            //canvas.drawText(Integer.toString(prevNode.position) + "   " + title, 20, 50, paint);
 
-            //canvas.drawRect(0, (int) (headBuffer * .6), width, (int) (headBuffer * .65), paint);
+            canvas.drawRect(0, (int) (headBuffer * .6), width, (int) (headBuffer * .65), paint);
         }
     }
 }

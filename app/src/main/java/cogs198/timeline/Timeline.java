@@ -101,8 +101,8 @@ public class Timeline extends View implements View.OnTouchListener{
             prevY = event.getY();
             return true;
         }
-        offset -= 1.2*(int) (prevY - event.getY());
 
+        offset -= 1.2*(int) (prevY - event.getY());
 
         //Toast.makeText(holyContext, "working", Toast.LENGTH_SHORT);
 

@@ -31,6 +31,8 @@ public class MainActivity extends Activity {
         int eventStartIndex = 3;
         int eventEndIndex = 4;
         int eventLocationIndex = 5;
+        int eventRecurrenceRuleIndex = 6;
+        int eventRecurrenceDateIndex = 7;
         Event head = null;
         Timeline timeline = new Timeline(this);
 
@@ -40,7 +42,7 @@ public class MainActivity extends Activity {
         int priority;
 
         String[] projection = new String[] { "calendar_id", "title", "description",
-                "dtstart", "dtend", "eventLocation" };
+                "dtstart", "dtend", "eventLocation", "rrule", "rdate"};
 
 
         ContentResolver cr = getContentResolver();
