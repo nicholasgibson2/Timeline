@@ -34,6 +34,8 @@ public class Timeline extends View implements View.OnTouchListener{
     static Context holyContext;
     int leftShift;
     int timelineColor = Color.parseColor("#E5F3FF");
+    int backgroundColor;
+    static double screenDensity;
 
     static Scroller mScroller;
     boolean first = true;
@@ -46,6 +48,7 @@ public class Timeline extends View implements View.OnTouchListener{
         setFocusable(true);
 
         setBackgroundColor(Color.parseColor("#c9e5e3"));
+        //setBackgroundColor(Color.parseColor("#ffffff"));
 
         holyContext = context;
 
@@ -55,6 +58,8 @@ public class Timeline extends View implements View.OnTouchListener{
         width = display.getWidth(); //width of screen
         height = display.getHeight(); //height of screen
         leftShift = height/10;
+
+        screenDensity = getResources().getDisplayMetrics().density;
 
         mScroller = new Scroller(context);
     }
@@ -80,10 +85,10 @@ public class Timeline extends View implements View.OnTouchListener{
         canvas.drawRect(timelineLeft, timelineTop, timelineRight, height, paint);
         setOnTouchListener(this);
 
-        head.setCanvas(canvas, paint);
-
-        //Toast.makeText(holyContext, Integer.toString(prevPosition), Toast.LENGTH_SHORT).show();
-        drawEvents();
+        if (head != null) {
+            head.setCanvas(canvas, paint);
+            drawEvents();
+        }
     }
 
     void drawEvents() {
@@ -91,6 +96,7 @@ public class Timeline extends View implements View.OnTouchListener{
         head.draw(offset, head, first);
         first = false;
 
+        //Toast.makeText(holyContext, head.title, Toast.LENGTH_SHORT).show();
         invalidate();
     }
 

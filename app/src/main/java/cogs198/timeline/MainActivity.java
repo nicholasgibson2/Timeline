@@ -61,7 +61,7 @@ public class MainActivity extends Activity {
 
             if (head == null)
                 head = new Event(name, start, end, priority, null, null);
-            else
+            else if (name != null)
                 head = head.addEvent(name, start, end, priority, head);
         }
 

@@ -42,6 +42,11 @@ class Event {
     final int highSize = height / 18; //high priority event size
     final int rectSize = height / 133; //width of timeline, size of gap boxes
     final int leftShift = height / 10; //distance to shift left
+    final int titleX = width / 2 - height / 40;
+    final int titleY = height / 61;
+    final int startX = (int)(height / 80);
+    final int startY = titleY;
+
     final int epochHour = 3600000;
     static Canvas canvas;
     static Paint paint;
@@ -53,7 +58,8 @@ class Event {
     int eventColor;
     int textColor = Color.parseColor("#ffffff");
     int topColor = Color.parseColor("#c1d9de");
-    int textSize = 30;
+    int topTextSize = (int)(40 * Timeline.screenDensity);
+    int textSize = (int)(25 * Timeline.screenDensity);
 
     Event prevNode = this; //previous event, default value for this event as first event
     Event nextNode = this; //next event, default value for this event as first event
@@ -233,10 +239,11 @@ class Event {
             paint.setTextSize(textSize);
 
             //draw title text on right hand side
-            canvas.drawText(title, width / 2 + 70 - 90, position + 13, paint);
+
+            canvas.drawText(title, titleX, position + titleY, paint);
 
             //draw date text on left hand side
-            canvas.drawText(startText, width / 2 - 90 - 140, position + 13, paint);
+            canvas.drawText(startText, startX, position + startY, paint);
         }
 
         //if this is not the last event, and the event is not off the screen
@@ -261,8 +268,8 @@ class Event {
 
             //set text properties
             paint.setColor(textColor);
-            paint.setTextSize(50);
-            canvas.drawText(dateText, 20, 50, paint);
+            paint.setTextSize(topTextSize);
+            canvas.drawText(dateText, height/40, height/16, paint);
             //canvas.drawText(Integer.toString(prevNode.position) + "   " + title, 20, 50, paint);
 
             canvas.drawRect(0, (int) (headBuffer * .6), width, (int) (headBuffer * .65), paint);
