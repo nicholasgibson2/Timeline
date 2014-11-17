@@ -55,14 +55,18 @@ class Event {
     static int curTailSpot = 0;
 
     int rectColor = Color.parseColor("#c9e5e3");
-    int eventColor;
+    //int rectColor = Color.parseColor("#ffffff");
+    //int eventColor = Color.parseColor("#dc6558");
+    int eventColor = Color.parseColor("#df857b");
     int textColor = Color.parseColor("#ffffff");
+    //int textColor = Color.parseColor("#000000");
     int topColor = Color.parseColor("#c1d9de");
-    int topTextSize = (int)(40 * Timeline.screenDensity);
+    //int topColor = Color.parseColor("#ffffff");
+    int topTextSize = (int)(35 * Timeline.screenDensity);
     int textSize = (int)(25 * Timeline.screenDensity);
 
-    Event prevNode = this; //previous event, default value for this event as first event
-    Event nextNode = this; //next event, default value for this event as first event
+    Event prevNode = null; //previous event
+    Event nextNode = null; //next event
 
     //set canvas and paint, called once from head node
     void setCanvas(Canvas setCanvas, Paint setPaint) {
@@ -71,7 +75,7 @@ class Event {
     }
 
     Event updateHead(Event oldHead, long today) {
-        if (nextNode == oldHead)
+        if (nextNode == null)
             return oldHead;
         else if (startEpoch <= today)
             return nextNode.updateHead(oldHead, today);
@@ -86,11 +90,9 @@ class Event {
         title = setTitle;
         startEpoch = setStart;
 
-        if (setPrevNode != null) //if this is not the first event
-        {
-            prevNode = setPrevNode;
-            nextNode = setNextNode;
-        }
+        prevNode = setPrevNode;
+        nextNode = setNextNode;
+
         switch (priority) {
             case 0:
                 size = lowSize;
@@ -114,24 +116,25 @@ class Event {
     //this method is always called from the head node, it will never be called with no events
     public Event addEvent(String setTitle, long setStart, long setEnd, int setPriority, Event head)
     {
-        if (nextNode == this && prevNode == this) //only one Node
+        if (nextNode == null && prevNode == null) //only one Node
         {
-            prevNode = new Event(setTitle, setStart, setEnd, setPriority, this, head);
-            nextNode = prevNode;
-
-            if (nextNode.startEpoch > startEpoch)
+            if (setStart > startEpoch) {
+                nextNode = new Event(setTitle, setStart, setEnd, setPriority, this, null);
                 return this;
-            else
-                return nextNode;
+            }
+            else {
+                prevNode = new Event(setTitle, setStart, setEnd, setPriority, null, this);
+                return prevNode;
+            }
         }
-        if (setStart > startEpoch) //new event start > old event start
+        else if (setStart > startEpoch) //new event start > old event start
         {
-            if (nextNode != head)
+            if (nextNode != null)
                 return nextNode.addEvent(setTitle, setStart, setEnd, setPriority, head);
 
             else //added event is the latest event
             {
-                nextNode = new Event(setTitle, setStart, setEnd, setPriority, this, head);
+                nextNode = new Event(setTitle, setStart, setEnd, setPriority, this, null);
                 return head;
             }
         }
@@ -160,7 +163,7 @@ class Event {
             position = curHeadSpot + offset;
 
             //head is off top of screen
-            if (position <= 0 && startEpoch <= nextNode.startEpoch) {
+            if (position <= 0 && nextNode != null) {
                 Timeline.head = nextNode;
                 int nextPosition = (int) (position + (Math.abs(nextNode.startEpoch - startEpoch)
                         / epochHour) * hourSize);
@@ -179,7 +182,7 @@ class Event {
                 return;
             }
             //checks if previous node should be displayed and made the new head
-            else if (startEpoch >= prevNode.startEpoch)
+            else if (prevNode != null)
             {
                 int prevPosition = (int) (position - (Math.abs(startEpoch - prevNode.startEpoch) /
                         epochHour) * hourSize);
@@ -247,7 +250,7 @@ class Event {
         }
 
         //if this is not the last event, and the event is not off the screen
-        if ((position < height*.88) && (startEpoch <= nextNode.startEpoch))
+        if ((position < height*.88) && (nextNode != null))
             nextNode.draw(offset, head, false);
         else {
             //draw background color rectangle to make gap in timeline around ends of event
@@ -256,7 +259,7 @@ class Event {
 
             String dateText;
 
-            if (prevNode.position >= 0) {
+            if (prevNode != null && prevNode.position >= 0) {
                 dateText = EventDate.getDayShort(prevNode.start.getDay()) + ", " +
                         EventDate.getMonthLong(prevNode.start.getMonth()) + " " +
                         prevNode.start.getDate();

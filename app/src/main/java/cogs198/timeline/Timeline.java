@@ -34,7 +34,8 @@ public class Timeline extends View implements View.OnTouchListener{
     static Context holyContext;
     int leftShift;
     int timelineColor = Color.parseColor("#E5F3FF");
-    int backgroundColor;
+    int backgroundColor = Color.parseColor("#c9e5e3");
+    //int backgroundColor = Color.parseColor("#ffffff");
     static double screenDensity;
 
     static Scroller mScroller;
@@ -47,7 +48,7 @@ public class Timeline extends View implements View.OnTouchListener{
         super(context);
         setFocusable(true);
 
-        setBackgroundColor(Color.parseColor("#c9e5e3"));
+        setBackgroundColor(backgroundColor);
         //setBackgroundColor(Color.parseColor("#ffffff"));
 
         holyContext = context;
