@@ -62,6 +62,7 @@ class Event {
     int topColor = Color.parseColor("#ffffff");
 
     int topTextSize = (int)(35 * Timeline.screenDensity);
+    int leftTextSize = (int)(18 * Timeline.screenDensity);
     int textSize = (int)(20 * Timeline.screenDensity);
 
     Event prevNode = null; //previous event
@@ -98,18 +99,21 @@ class Event {
         switch (priority) {
             case 0:
                 size = lowSize;
+                textSize = (int)(18 * Timeline.screenDensity);
                 //eventColor = Color.parseColor("#E5F3FF");
                 break;
             case 1:
                 size = medSize;
+                textSize = (int)(25 * Timeline.screenDensity);
                 //eventColor = Color.parseColor("#E5F3FF");
                 break;
             case 2:
                 size = highSize;
+                textSize = (int)(28 * Timeline.screenDensity);
                 //eventColor = Color.parseColor("#E5F3FF");
                 break;
             default:
-                size = highSize;
+                size = lowSize;
                 //eventColor = Color.parseColor("#E5F3FF");
                 break;
         }
@@ -156,6 +160,8 @@ class Event {
     //initially called from head, called recursively until events are off the display
     void draw(int offset, Event head, boolean first) {
 
+        String dateText;
+
         if (first) {
             position = (int) headBuffer + offset;
             curHeadSpot = position - offset;
@@ -196,8 +202,21 @@ class Event {
                 else if (Math.abs(prevPosition - position) >= maxDistance) {
                     prevPosition = (int) (position - maxDistance - 1);
 
+                    //date label
+                    /*paint.setColor(textColor);
+                    canvas.drawRect(0, position - (int)(maxDistance*.66), width,
+                            position - (int)(maxDistance*.4425), paint);
+*/
+                    paint.setColor(topColor);
+                    canvas.drawRect(0, position - (int)(maxDistance*.65), width,
+                            position - (int)(maxDistance*.45), paint);
+
+                    dateText = EventDate.getDayShort(start.getDay()) + ", " +
+                            EventDate.getMonthLong(start.getMonth()) + " " + start.getDate();
+
                     paint.setColor(textColor);
-                    canvas.drawRect(0, position - 70, width, position - 67, paint);
+                    paint.setTextSize(topTextSize);
+                    canvas.drawText(dateText, height/40, position - (int)(maxDistance/2), paint);
                 }
 
                 //if previous node should be displayed, make it the new head
@@ -221,8 +240,22 @@ class Event {
             //too far apart
             else if (Math.abs(position - prevNode.position) >= maxDistance) {
                 position = (int) (prevNode.position + maxDistance + 1);
+
+                //date label
                 paint.setColor(textColor);
-                canvas.drawRect(0, position - 50, width, position - 48, paint);
+               /* canvas.drawRect(0, position - (int)(maxDistance*.66), width,
+                        position - (int)(maxDistance*.4425), paint);
+*/
+                paint.setColor(topColor);
+                canvas.drawRect(0, position - (int)(maxDistance*.65), width,
+                        position - (int)(maxDistance*.45), paint);
+
+                dateText = EventDate.getDayShort(start.getDay()) + ", " +
+                        EventDate.getMonthLong(start.getMonth()) + " " + start.getDate();
+
+                paint.setColor(textColor);
+                paint.setTextSize(topTextSize);
+                canvas.drawText(dateText, height/40, position - (int)(maxDistance/2), paint);
             }
 
         }
@@ -254,6 +287,7 @@ class Event {
             canvas.drawText(title, titleX, position + titleY, paint);
 
             //draw date text on left hand side
+            paint.setTextSize(leftTextSize);
             canvas.drawText(startText, startX, position + startY, paint);
         }
 
@@ -262,10 +296,8 @@ class Event {
             nextNode.draw(offset, head, false);
         else {
             //draw background color rectangle to make gap in timeline around ends of event
-            paint.setColor(topColor);
+            /*paint.setColor(topColor);
             canvas.drawRect(0, 0, width, (int) (headBuffer * .65), paint);
-
-            String dateText;
 
             if (prevNode != null && prevNode.position >= 0) {
                 dateText = EventDate.getDayShort(prevNode.start.getDay()) + ", " +
@@ -282,7 +314,7 @@ class Event {
             paint.setTextSize(topTextSize);
             canvas.drawText(dateText, height/40, height/16, paint);
 
-            canvas.drawRect(0, (int) (headBuffer * .6), width, (int) (headBuffer * .65), paint);
+            canvas.drawRect(0, (int) (headBuffer * .6), width, (int) (headBuffer * .65), paint); */
         }
     }
 }
