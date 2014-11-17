@@ -24,9 +24,10 @@ public class Timeline extends View implements View.OnTouchListener{
     Paint paint = new Paint();
     static Context holyContext;
     int leftShift;
-    int timelineColor = Color.parseColor("#E5F3FF");
-    int backgroundColor = Color.parseColor("#c9e5e3");
-    //int backgroundColor = Color.parseColor("#ffffff");
+    //int timelineColor = Color.parseColor("#E5F3FF");
+    int timelineColor = Color.parseColor("#cfdfee");
+    //int backgroundColor = Color.parseColor("#c9e5e3");
+    int backgroundColor = Color.parseColor("#ffffff");
     static double screenDensity;
 
     static Scroller mScroller;

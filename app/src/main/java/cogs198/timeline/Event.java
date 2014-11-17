@@ -17,6 +17,7 @@ class Event {
     int priority;
     String title;
     long startEpoch; //used for actual time comparisons
+    long endEpoch;
 
     int position = 0;
     int size; //defined by priority
@@ -33,12 +34,12 @@ class Event {
     final int gapSize = height / 35; //size of timeline gap surrounding events
     final double headBuffer = height / 6.5; //buffer for first event from top of screen
     final int minDistance = height / 11; //minimum event spacing
-    final double maxDistance = height*.8; //maximum event spacing
+    final double maxDistance = height*.4; //maximum event spacing
     final int hourSize = height / 11; //event spacing per hour
     final int lowSize = height / 44; //low priority event size
     final int medSize = height / 24; //medium priority event size
     final int highSize = height / 18; //high priority event size
-    final int rectSize = height / 133; //width of timeline, size of gap boxes
+    final int tailSize = height / 133; //width of timeline, size of gap boxes
     final int leftShift = height / 10; //distance to shift left
     final int titleX = width / 2 - height / 40;
     final int titleY = height / 61;
@@ -51,16 +52,17 @@ class Event {
 
     static int curHeadSpot = 0;
 
-    int rectColor = Color.parseColor("#c9e5e3");
-    //int rectColor = Color.parseColor("#ffffff");
-    //int eventColor = Color.parseColor("#dc6558");
-    int eventColor = Color.parseColor("#df857b");
-    int textColor = Color.parseColor("#ffffff");
-    //int textColor = Color.parseColor("#000000");
-    int topColor = Color.parseColor("#c1d9de");
-    //int topColor = Color.parseColor("#ffffff");
+    //colors
+    int tailColor = Color.parseColor("#b0c6dd");
+    int eventColor = Color.parseColor("#b0c6dd");
+    //int eventColor = Color.parseColor("#df857b");
+    //int textColor = Color.parseColor("#ffffff");
+    int textColor = Color.parseColor("#000000");
+    //int topColor = Color.parseColor("#c1d9de");
+    int topColor = Color.parseColor("#ffffff");
+
     int topTextSize = (int)(35 * Timeline.screenDensity);
-    int textSize = (int)(25 * Timeline.screenDensity);
+    int textSize = (int)(20 * Timeline.screenDensity);
 
     Event prevNode = null; //previous event
     Event nextNode = null; //next event
@@ -88,6 +90,7 @@ class Event {
         end = new Date(setEnd);
         title = setTitle;
         startEpoch = setStart;
+        endEpoch = setEnd;
 
         prevNode = setPrevNode;
         nextNode = setNextNode;
@@ -95,19 +98,19 @@ class Event {
         switch (priority) {
             case 0:
                 size = lowSize;
-                eventColor = Color.parseColor("#E5F3FF");
+                //eventColor = Color.parseColor("#E5F3FF");
                 break;
             case 1:
                 size = medSize;
-                eventColor = Color.parseColor("#E5F3FF");
+                //eventColor = Color.parseColor("#E5F3FF");
                 break;
             case 2:
                 size = highSize;
-                eventColor = Color.parseColor("#E5F3FF");
+                //eventColor = Color.parseColor("#E5F3FF");
                 break;
             default:
                 size = highSize;
-                eventColor = Color.parseColor("#E5F3FF");
+                //eventColor = Color.parseColor("#E5F3FF");
                 break;
         }
         numEvents++;
@@ -190,8 +193,12 @@ class Event {
                     prevPosition = (int) (prevPosition - minDistance - 1);
 
                 //too far apart
-                else if (Math.abs(prevPosition - position) >= maxDistance)
+                else if (Math.abs(prevPosition - position) >= maxDistance) {
                     prevPosition = (int) (position - maxDistance - 1);
+
+                    paint.setColor(textColor);
+                    canvas.drawRect(0, position - 70, width, position - 67, paint);
+                }
 
                 //if previous node should be displayed, make it the new head
                 if (prevPosition > 0) {
@@ -212,24 +219,27 @@ class Event {
                 position = (int) (prevNode.position + minDistance + 1);
 
             //too far apart
-            else if (Math.abs(position - prevNode.position) >= maxDistance)
+            else if (Math.abs(position - prevNode.position) >= maxDistance) {
                 position = (int) (prevNode.position + maxDistance + 1);
+                paint.setColor(textColor);
+                canvas.drawRect(0, position - 50, width, position - 48, paint);
+            }
 
         }
         if (position >= 0) {
 
-            //set up rectangles
-            int rectTop = position - size - gapSize;
-            int rectBottom = position + size + gapSize;
-            int rectLeft = width / 2 - rectSize - leftShift;
-            int rectRight = width / 2 + rectSize - leftShift;
+            //set up tail
+            int tailTop = position + size;
+            int tailBottom = tailTop + ((int)(Math.abs(startEpoch - endEpoch)/epochHour))*hourSize;
+            int tailLeft = width / 2 - tailSize - leftShift;
+            int tailRight = width / 2 + tailSize - leftShift;
 
             //set up date text
             String startText = EventDate.convertTime(start.getHours(), start.getMinutes());
 
-            //draw background color rectangle to make gap in timeline around ends of event
-            paint.setColor(rectColor);
-            canvas.drawRect(rectLeft, rectTop, rectRight, rectBottom, paint);
+            //draw tail for event end time
+            paint.setColor(tailColor);
+            canvas.drawRect(tailLeft, tailTop, tailRight, tailBottom, paint);
 
             //draw event
             paint.setColor(eventColor);
