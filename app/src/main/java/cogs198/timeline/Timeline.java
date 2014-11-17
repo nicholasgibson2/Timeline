@@ -4,18 +4,10 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Point;
-import android.graphics.PorterDuff;
-import android.util.AttributeSet;
 import android.view.Display;
-import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.view.WindowManager;
-import android.widget.AbsListView;
-import android.widget.ListView;
-import android.widget.ScrollView;
 import android.widget.Scroller;
 import android.widget.Toast;
 
@@ -28,7 +20,6 @@ public class Timeline extends View implements View.OnTouchListener{
     static Event head = null;
 
     public static int offset = 0;
-   // private Scroller mScroller;
     Canvas canvas;
     Paint paint = new Paint();
     static Context holyContext;
@@ -101,6 +92,7 @@ public class Timeline extends View implements View.OnTouchListener{
         invalidate();
     }
 
+    //makeshift scrolling method, until real scrolling is implemented :)
     @Override
     public boolean onTouch(View v, MotionEvent event) {
 

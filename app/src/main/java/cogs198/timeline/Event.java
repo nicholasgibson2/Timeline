@@ -7,7 +7,6 @@ import android.graphics.Paint;
 import android.view.Display;
 import android.view.WindowManager;
 
-import java.sql.Time;
 import java.util.Date;
 
 
@@ -21,10 +20,9 @@ class Event {
 
     int position = 0;
     int size; //defined by priority
+    boolean repeated = false;
 
-    int nodeOffset = 0; //used for relative event spacing
-
-    static int numEvents = 0;
+    static int numEvents = 0; //used for debugging
 
     //used for getting screen dimensions
     WindowManager wm = (WindowManager) Timeline.holyContext.getSystemService(Context.WINDOW_SERVICE);
@@ -52,7 +50,6 @@ class Event {
     static Paint paint;
 
     static int curHeadSpot = 0;
-    static int curTailSpot = 0;
 
     int rectColor = Color.parseColor("#c9e5e3");
     //int rectColor = Color.parseColor("#ffffff");
@@ -74,10 +71,12 @@ class Event {
         paint = setPaint;
     }
 
+    //makes the head node/first displayed event the next upcoming event
+    //called recursively
     Event updateHead(Event oldHead, long today) {
-        if (nextNode == null)
-            return oldHead;
-        else if (startEpoch <= today)
+        if (nextNode == null) //this is the last node
+            return oldHead; //don't update head
+        else if (startEpoch <= today) //next node start was before today
             return nextNode.updateHead(oldHead, today);
         else
             return this;
@@ -150,7 +149,6 @@ class Event {
                 return head;
         }
     }
-
 
     //initially called from head, called recursively until events are off the display
     void draw(int offset, Event head, boolean first) {
@@ -273,13 +271,13 @@ class Event {
             paint.setColor(textColor);
             paint.setTextSize(topTextSize);
             canvas.drawText(dateText, height/40, height/16, paint);
-            //canvas.drawText(Integer.toString(prevNode.position) + "   " + title, 20, 50, paint);
 
             canvas.drawRect(0, (int) (headBuffer * .6), width, (int) (headBuffer * .65), paint);
         }
     }
 }
 
+//used for date text formatting
 class EventDate {
 
     public final static String[] monthLong = {"January", "February", "March", "April", "May",
