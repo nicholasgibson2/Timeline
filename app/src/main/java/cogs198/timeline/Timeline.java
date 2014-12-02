@@ -47,7 +47,7 @@ public class Timeline extends View implements View.OnTouchListener{
         Display display = wm.getDefaultDisplay();
         width = display.getWidth(); //width of screen
         height = display.getHeight(); //height of screen
-        leftShift = height/10;
+        leftShift = height/8;
 
         screenDensity = getResources().getDisplayMetrics().density;
 
@@ -72,6 +72,11 @@ public class Timeline extends View implements View.OnTouchListener{
 
         paint.setColor(timelineColor);
         canvas.drawRect(timelineLeft, timelineTop, timelineRight, height, paint);
+
+        paint.setColor(backgroundColor);
+        canvas.drawRect(timelineLeft + (height/400), timelineTop, timelineRight -
+                (height/400), height, paint);
+
         setOnTouchListener(this);
 
         if (head != null) {
