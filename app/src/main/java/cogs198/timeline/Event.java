@@ -12,75 +12,95 @@ import java.util.Date;
 
 class Event {
 
+    /************************************calendar event attributes*********************************/
     Date start; //used to easily access day, hour, minute etc.
     Date end; //currently unused
     int priority;
     String title;
     long startEpoch; //used for actual time comparisons
     long endEpoch;
-
     int position = 0;
     int size; //defined by priority
     boolean repeated = false;
+    /**********************************************************************************************/
 
-    static int numEvents = 0; //used for debugging
-
+    /************************************misc setup************************************************/
     //used for getting screen dimensions
-    WindowManager wm = (WindowManager) Timeline.holyContext.getSystemService(Context.WINDOW_SERVICE);
-    Display display = wm.getDefaultDisplay();
-    int width = display.getWidth(); //width of screen
-    int height = display.getHeight(); //height of screen
-
-    final int gapSize = height / 35; //size of timeline gap surrounding events
-    final double headBuffer = height / 6.5; //buffer for first event from top of screen
-    final int minDistance = height / 11; //minimum event spacing
-    final double maxDistance = height*.4; //maximum event spacing
-    final int hourSize = height / 11; //event spacing per hour
-    final int lowSize = height / 44; //low priority event size
-    final int medSize = height / 24; //medium priority event size
-    final int highSize = height / 18; //high priority event size
-    final int tailSize = height / 133; //width of timeline, size of gap boxes
-    final int leftShift = height / 10; //distance to shift left
-    final int titleX = width / 2 - height / 40;
-    final int titleY = height / 61;
-    final int startX = (int)(height / 80);
-    final int startY = titleY;
-
-    final int epochHour = 3600000;
+    final static WindowManager wm = (WindowManager) Timeline.holyContext.getSystemService(Context.WINDOW_SERVICE);
+    final static Display display = wm.getDefaultDisplay();
+    final static int width = display.getWidth(); //width of screen
+    final static int height = display.getHeight(); //height of screen
+    final static int epochMinute = 60000;
     static Canvas canvas;
     static Paint paint;
+    static int numEvents = 0; //used for debugging
+    final static long today = System.currentTimeMillis();
+    static int curBarPosition;
+    /**********************************************************************************************/
 
-    static int curHeadSpot = 0;
+    /************************************user interface********************************************/
+    //spacing
+    final static double headBuffer = height / 6.5; //buffer for first event from top of screen
+    final static int minDistance = height / 11; //minimum event spacing
+    final static double maxDistance = height*.4; //maximum event spacing
+    final static double minuteSize = height / 660; //event spacing per minute
+    final static int leftShift = height / 10; //x position of timeline
+
+    //event sizes
+    final static int lowSize = height / 44; //low priority event size
+    final static int medSize = height / 24; //medium priority event size
+    final static int highSize = height / 18; //high priority event size
+    final static int tailSize = height / 133; //width of timeline, size of gap boxes
+
+    //positioning for event titles
+    final static int titleX = width / 2 - height / 40;
+    final static int titleY = height / 61;
+    final static int startX = (int)(height / 80);
+    final static int startY = titleY;
 
     //colors
-    int tailColor = Color.parseColor("#b0c6dd");
-    int eventColor = Color.parseColor("#b0c6dd");
-    //int eventColor = Color.parseColor("#df857b");
-    //int textColor = Color.parseColor("#ffffff");
-    int textColor = Color.parseColor("#000000");
-    //int topColor = Color.parseColor("#c1d9de");
-    int topColor = Color.parseColor("#ffffff");
+    int tailColor = Color.parseColor("#b0c6dd"); //in case we want different color for tail
+    int eventColor = Color.parseColor("#b0c6dd"); //will be set to lowColor, medColor, or highColor
+    //final static int lowColor;
+    //final static int medColor;
+    //final static int highColor;
+    final static int textColor = Color.parseColor("#000000");
+    final static int topColor = Color.parseColor("#ffffff");
+    final static int curBarColor = Color.parseColor("#FF0000"); //color of current time bar
 
-    int topTextSize = (int)(35 * Timeline.screenDensity);
-    int leftTextSize = (int)(18 * Timeline.screenDensity);
+    //text sizes
+    final static int topTextSize = (int)(35 * Timeline.screenDensity);
+    final static int leftTextSize = (int)(18 * Timeline.screenDensity);
     int textSize = (int)(20 * Timeline.screenDensity);
+
+    final static int curBarSize = (int)(2*Timeline.screenDensity); //size of current time bar
+    /**********************************************************************************************/
+
+
+    /************************************node data*************************************************/
+    static int curHeadSpot = 0; //position of current head node
+
+    //low med high nodes not set up yet, will be used for easy view by priority
+    Event prevNodeLow = null; //previous event
+    Event nextNodeLow = null; //next event
+
+    Event prevNodeMed = null; //previous event
+    Event nextNodeMed = null; //next event
+
+    Event prevNodeHigh = null; //previous event
+    Event nextNodeHigh = null; //next event
 
     Event prevNode = null; //previous event
     Event nextNode = null; //next event
-
-    //set canvas and paint, called once from head node
-    void setCanvas(Canvas setCanvas, Paint setPaint) {
-        canvas = setCanvas;
-        paint = setPaint;
-    }
+    /**********************************************************************************************/
 
     //makes the head node/first displayed event the next upcoming event
     //called recursively
-    Event updateHead(Event oldHead, long today) {
+    Event updateHead(Event oldHead) {
         if (nextNode == null) //this is the last node
             return oldHead; //don't update head
         else if (startEpoch <= today) //next node start was before today
-            return nextNode.updateHead(oldHead, today);
+            return nextNode.updateHead(oldHead);
         else
             return this;
     }
@@ -100,23 +120,24 @@ class Event {
             case 0:
                 size = lowSize;
                 textSize = (int)(18 * Timeline.screenDensity);
-                //eventColor = Color.parseColor("#E5F3FF");
+                //eventColor = lowColor;
                 break;
             case 1:
                 size = medSize;
                 textSize = (int)(25 * Timeline.screenDensity);
-                //eventColor = Color.parseColor("#E5F3FF");
+                //eventColor = medColor;
                 break;
             case 2:
                 size = highSize;
                 textSize = (int)(28 * Timeline.screenDensity);
-                //eventColor = Color.parseColor("#E5F3FF");
+                //eventColor = highColor;
                 break;
             default:
                 size = lowSize;
-                //eventColor = Color.parseColor("#E5F3FF");
+                //eventColor = lowColor;
                 break;
         }
+        tailColor = eventColor;
         numEvents++;
     }
     //this method is always called from the head node, it will never be called with no events
@@ -148,7 +169,9 @@ class Event {
         {
             Event oldPrev = prevNode;
             prevNode = new Event(setTitle, setStart, setEnd, setPriority, oldPrev, this);
-            oldPrev.nextNode = prevNode;
+
+            if (oldPrev != null)
+                oldPrev.nextNode = prevNode;
 
             if (this == head)
                 return prevNode;
@@ -173,15 +196,15 @@ class Event {
             if (position <= 0 && nextNode != null) {
                 Timeline.head = nextNode;
                 int nextPosition = (int) (position + (Math.abs(nextNode.startEpoch - startEpoch)
-                        / epochHour) * hourSize);
+                        / epochMinute) * minuteSize);
 
                 //too close together
                 if (Math.abs(nextPosition - position) < minDistance)
-                    nextPosition = (int) (prevNode.position + minDistance + 1);
+                    nextPosition = (int) (position + minDistance + 1);
 
                 //too far apart
                 else if (Math.abs(nextPosition - position) >= maxDistance)
-                    nextPosition = (int) (prevNode.position + maxDistance + 1);
+                    nextPosition = (int) (position + maxDistance + 1);
 
                 curHeadSpot = nextPosition - offset;
 
@@ -192,7 +215,7 @@ class Event {
             else if (prevNode != null)
             {
                 int prevPosition = (int) (position - (Math.abs(startEpoch - prevNode.startEpoch) /
-                        epochHour) * hourSize);
+                        epochMinute) * minuteSize);
 
                 //too close together
                 if (Math.abs(prevPosition - position) < minDistance)
@@ -229,9 +252,10 @@ class Event {
             }
         }
         else {
+
             //set regular node position
             position = (int) (prevNode.position +
-                    (Math.abs(startEpoch - prevNode.startEpoch) / epochHour) * hourSize);
+                    (Math.abs(startEpoch - prevNode.startEpoch) / epochMinute) * minuteSize);
 
             //too close together
             if (Math.abs(position - prevNode.position) < minDistance)
@@ -259,11 +283,16 @@ class Event {
             }
 
         }
-        if (position >= 0) {
+        if ((nextNode != null && nextNode.position >= 0) || (position >= 0)) {
 
+            //draw current time bar
+            /*paint.setColor(curBarColor);
+            curBarPosition = position + (int)(((today - startEpoch)/epochMinute)*minuteSize);
+            canvas.drawRect(0, curBarPosition, width, curBarPosition + curBarSize, paint);
+            */
             //set up tail
             int tailTop = position + size;
-            int tailBottom = tailTop + ((int)(Math.abs(startEpoch - endEpoch)/epochHour))*hourSize;
+            int tailBottom = tailTop + (int)((Math.abs(startEpoch - endEpoch)/epochMinute)*minuteSize);
             int tailLeft = width / 2 - tailSize - leftShift;
             int tailRight = width / 2 + tailSize - leftShift;
 
@@ -291,30 +320,13 @@ class Event {
             canvas.drawText(startText, startX, position + startY, paint);
         }
 
+
+
         //if this is not the last event, and the event is not off the screen
         if ((position < height*.88) && (nextNode != null))
             nextNode.draw(offset, head, false);
         else {
-            //draw background color rectangle to make gap in timeline around ends of event
-            /*paint.setColor(topColor);
-            canvas.drawRect(0, 0, width, (int) (headBuffer * .65), paint);
 
-            if (prevNode != null && prevNode.position >= 0) {
-                dateText = EventDate.getDayShort(prevNode.start.getDay()) + ", " +
-                        EventDate.getMonthLong(prevNode.start.getMonth()) + " " +
-                        prevNode.start.getDate();
-            } else {
-                dateText = EventDate.getDayShort(start.getDay()) + ", " +
-                        EventDate.getMonthLong(start.getMonth()) + " " +
-                        start.getDate();
-            }
-
-            //set text properties
-            paint.setColor(textColor);
-            paint.setTextSize(topTextSize);
-            canvas.drawText(dateText, height/40, height/16, paint);
-
-            canvas.drawRect(0, (int) (headBuffer * .6), width, (int) (headBuffer * .65), paint); */
         }
     }
 }

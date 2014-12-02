@@ -20,13 +20,11 @@ public class Timeline extends View implements View.OnTouchListener{
     static Event head = null;
 
     public static int offset = 0;
-    Canvas canvas;
-    Paint paint = new Paint();
+    static Canvas canvas;
+    static Paint paint = new Paint();
     static Context holyContext;
     int leftShift;
-    //int timelineColor = Color.parseColor("#E5F3FF");
     int timelineColor = Color.parseColor("#cfdfee");
-    //int backgroundColor = Color.parseColor("#c9e5e3");
     int backgroundColor = Color.parseColor("#ffffff");
     static double screenDensity;
 
@@ -41,7 +39,6 @@ public class Timeline extends View implements View.OnTouchListener{
         setFocusable(true);
 
         setBackgroundColor(backgroundColor);
-        //setBackgroundColor(Color.parseColor("#ffffff"));
 
         holyContext = context;
 
@@ -57,8 +54,7 @@ public class Timeline extends View implements View.OnTouchListener{
         mScroller = new Scroller(context);
     }
     public void setHead(Event setHead) {
-        //head = setHead;
-        head = setHead.updateHead(setHead, System.currentTimeMillis());
+        head = setHead.updateHead(setHead);
     }
 
     @Override
@@ -79,7 +75,8 @@ public class Timeline extends View implements View.OnTouchListener{
         setOnTouchListener(this);
 
         if (head != null) {
-            head.setCanvas(canvas, paint);
+            Event.paint = paint;
+            Event.canvas = canvas;
             drawEvents();
         }
     }
@@ -93,7 +90,7 @@ public class Timeline extends View implements View.OnTouchListener{
         invalidate();
     }
 
-    //makeshift scrolling method, until real scrolling is implemented :)
+    //makeshift scrolling method, until real scrolling is implemented
     @Override
     public boolean onTouch(View v, MotionEvent event) {
 
@@ -103,8 +100,6 @@ public class Timeline extends View implements View.OnTouchListener{
         }
 
         offset -= 1.2*(int) (prevY - event.getY());
-
-        //Toast.makeText(holyContext, "working", Toast.LENGTH_SHORT);
 
         drawEvents();
 
