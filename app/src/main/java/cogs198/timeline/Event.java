@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.view.Display;
 import android.view.WindowManager;
 
@@ -73,12 +74,16 @@ class Event {
 
     //text sizes
     final static int dateLabelSize = (int)(35 * Timeline.screenDensity);
-    final static int lowTextSize = (int)(16 * Timeline.screenDensity); //low priority title size
-    final static int medTextSize = (int)(20 * Timeline.screenDensity); //med priority title size
-    final static int highTextSize = (int)(24 * Timeline.screenDensity); //high priority title size
+    final static int lowTextSize = (int)(17 * Timeline.screenDensity); //low priority title size
+    final static int medTextSize = (int)(22 * Timeline.screenDensity); //med priority title size
+    final static int highTextSize = (int)(25 * Timeline.screenDensity); //high priority title size
     final static int leftTextSize = lowTextSize; //size of start time, same size as low priority
 
     int textSize = (int)(20 * Timeline.screenDensity); //set based on priority
+
+    //Typeface font = Typeface.create("Gotham",Typeface.NORMAL);
+    Typeface font = Typeface.createFromAsset(Timeline.holyContext.getAssets(),
+            "fonts/OpenSans-Light.ttf");
 
 
     final static int curBarSize = (int)(2*Timeline.screenDensity); //size of current time bar
@@ -203,16 +208,26 @@ class Event {
             curHeadSpot = position - offset;
 
             /***date label***/
-            paint.setColor(white);
-            canvas.drawRect(0, position - (int) (headBuffer), width,
-                    position - (int) (headBuffer / 2), paint);
+            //inner black box
+            paint.setColor(textColor);
+            canvas.drawRect((int)(height*.075), //x start
+                    position - (int)(headBuffer*.94), //y start
+                    (int)(height*.5), //x end
+                    position - (int)(headBuffer*.4), //y end
+                    paint);
 
-            dateText = EventText.getDayShort(start.getDay()) + " | " +
-                    EventText.getMonthShort(start.getMonth()) + " " + start.getDate();
+            //outer white box
+            paint.setColor(white);
+            canvas.drawRect((int)(height*.0785), //x start
+                    position - (int) (headBuffer*.92), //y start
+                    (int)(height*.498), //x end
+                    position - (int)(headBuffer*.415), paint); //y end
+
+            dateText = EventText.setDateText(start);
 
             paint.setColor(textColor);
             paint.setTextSize(dateLabelSize);
-            canvas.drawText(dateText, height / 40, position - (int) (headBuffer / 1.5), paint);
+            canvas.drawText(dateText, height / 11, position - (int) (headBuffer*.55), paint);
             /****************/
         }
         //if this is the head node
@@ -221,16 +236,28 @@ class Event {
 
             /***date label***/
             if (prevNode == null) {
-                paint.setColor(white);
-                canvas.drawRect(0, position - (int) (headBuffer), width,
-                        position - (int) (headBuffer / 2), paint);
 
-                dateText = EventText.getDayShort(start.getDay()) + " | " +
-                        EventText.getMonthShort(start.getMonth()) + " " + start.getDate();
+                //inner black box
+                paint.setColor(textColor);
+                canvas.drawRect((int)(height*.075), //x start
+                        position - (int)(headBuffer*.94), //y start
+                        (int)(height*.5), //x end
+                        position - (int)(headBuffer*.4), //y end
+                        paint);
+
+                //outer white box
+                paint.setColor(white);
+                canvas.drawRect((int)(height*.0785), //x start
+                        position - (int) (headBuffer*.92), //y start
+                        (int)(height*.498), //x end
+                        position - (int)(headBuffer*.415), paint); //y end
+
+                dateText = EventText.setDateText(start);
 
                 paint.setColor(textColor);
                 paint.setTextSize(dateLabelSize);
-                canvas.drawText(dateText, height / 40, position - (int) (headBuffer / 1.5), paint);
+                canvas.drawText(dateText, (int)(height*.09),
+                        position - (int) (headBuffer*.55), paint);
             }
             /****************/
 
@@ -268,17 +295,27 @@ class Event {
                     prevPosition = (int) (position - maxDistance - 1);
 
                     /***date label***/
-                    paint.setColor(white);
-                    canvas.drawRect(0, position - (int)(maxDistance*.65), width,
-                            position - (int)(maxDistance*.45), paint);
+                    //inner black box
+                    paint.setColor(textColor);
+                    canvas.drawRect((int)(height*.075), //x start
+                            position - (int)(headBuffer*.94), //y start
+                            (int)(height*.5), //x end
+                            position - (int)(headBuffer*.4), //y end
+                            paint);
 
-                    dateText = EventText.getDayShort(start.getDay()) + " | " +
-                            EventText.getMonthShort(start.getMonth()) + " " + start.getDate();
+                    //outer white box
+                    paint.setColor(white);
+                    canvas.drawRect((int)(height*.0785), //x start
+                            position - (int) (headBuffer*.92), //y start
+                            (int)(height*.498), //x end
+                            position - (int)(headBuffer*.415), paint); //y end
+
+                    dateText = EventText.setDateText(start);
 
                     paint.setColor(textColor);
                     paint.setTextSize(dateLabelSize);
-                    canvas.drawText(dateText, height/40, position - (int)(maxDistance/2), paint);
-                    /***************/
+                    canvas.drawText(dateText, height / 11, position - (int) (headBuffer*.55), paint);
+                    /****************/
                 }
                 //if previous node should be displayed, make it the new head
                 if (position > 0) {
@@ -304,16 +341,26 @@ class Event {
                 position = (int) (prevNode.position + maxDistance + 1);
 
                 /***date label***/
-                paint.setColor(white);
-                canvas.drawRect(0, position - (int)(maxDistance*.65), width,
-                        position - (int)(maxDistance*.45), paint);
+                //inner black box
+                paint.setColor(textColor);
+                canvas.drawRect((int)(height*.075), //x start
+                        position - (int)(headBuffer*.94), //y start
+                        (int)(height*.5), //x end
+                        position - (int)(headBuffer*.4), //y end
+                        paint);
 
-                dateText = EventText.getDayShort(start.getDay()) + " | " +
-                        EventText.getMonthShort(start.getMonth()) + " " + start.getDate();
+                //outer white box
+                paint.setColor(white);
+                canvas.drawRect((int)(height*.0785), //x start
+                        position - (int) (headBuffer*.92), //y start
+                        (int)(height*.498), //x end
+                        position - (int)(headBuffer*.415), paint); //y end
+
+                dateText = EventText.setDateText(start);
 
                 paint.setColor(textColor);
                 paint.setTextSize(dateLabelSize);
-                canvas.drawText(dateText, height/40, position - (int)(maxDistance/2), paint);
+                canvas.drawText(dateText, height / 11, position - (int) (headBuffer*.55), paint);
                 /****************/
             }
 
@@ -338,9 +385,9 @@ class Event {
 
                 //if tail overlaps into next day, make it stop at date label
                 if ((Math.abs(nextPosition - position) >= maxDistance) &&
-                        tailBottom >= position + maxDistance)
+                        tailBottom >= position + (maxDistance/2))
                 {
-                    tailBottom = (int)(position + (maxDistance / 2));
+                    tailBottom = (int)(position + (maxDistance/2));
                 }
             }
 
@@ -358,6 +405,7 @@ class Event {
             //set text properties
             paint.setColor(textColor);
             paint.setTextSize(textSize);
+            paint.setTypeface(font);
 
             //draw title text on right hand side
             //check if text spills off the edge, display two lines if it does
@@ -518,5 +566,22 @@ class EventText {
         }
 
     }
+
+    public static String setDateText(Date start) {
+
+        int day = start.getDay();
+        String dayPadded;
+
+        if (day < 10)
+            dayPadded = "0" + Integer.toString(day);
+        else
+            dayPadded = Integer.toString(day);
+
+        String dateText = getDayShort(start.getDay()) + " | " + getMonthShort(start.getMonth()) +
+                " " + dayPadded;
+
+        return dateText;
+    }
+
 }
 
